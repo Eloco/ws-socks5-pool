@@ -1,0 +1,46 @@
+name: Run Pool on Multiple Machines
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # This cron expression runs the action every 30 minutes.
+  workflow_dispatch:  # Allow manual triggering as well
+
+jobs:
+  run-scripts:
+    runs-on: ubuntu-latest  # Use Ubuntu as the base image for all the jobs in the matrix
+    timeout-minutes: 50  # Set a timeout for the entire job (maximum time the job will run)
+
+    strategy:
+      matrix:
+        machine: [1, 2, 3]  # Run on 3 different machines (can be customized)
+
+    env:
+      websocket_server_addr: ${{ secrets.websocket_server_addr }}  # Use secret as environment variable
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Step 2: Set up Python environment
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      # Step 3: Install dependencies (if you have a requirements.txt file)
+      - name: Install dependencies
+        run: |
+          cd ./Docker/Pool
+          python -m pip install -r requirements.txt
+
+
+      # Step 4: Run the scripts concurrently and retry on failure
+      - name: Run scripts concurrently from specific directory and retry on failure
+        continue-on-error: true
+        run: |
+          # Navigate to the directory containing your scripts
+          cd ./Docker/Pool  # Change this to the directory where your scripts are located
+          timeout 40m python pysocks.py | tee pysocks.log &
+          timeout 40m python pool.py | tee pool.log &
+          wait
