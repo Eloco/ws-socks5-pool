@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  pool:
+    build: .
+    container_name: ws-socks5-pool
+    volumes:
+      - .:/app
+      - ./log:/var/log/
+    env_file:
+      - .env
+    restart: always

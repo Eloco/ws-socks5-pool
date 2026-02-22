@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: ws-socks5-pool-server
+    ports:
+      - "18080:8080" # web
+      - "18081:1080" # socks5
+      - "18082:8765" # websocket
+    volumes:
+      - .:/app  # 将当前项目目录挂载到容器的/app目录
+    environment:
+      - PYTHONUNBUFFERED=1  # 防止Python缓冲输出，实时打印日志
+    restart: always
+
